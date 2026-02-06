@@ -1,165 +1,113 @@
+import { useProviderAuth } from "@/hooks/useProviderAuth";
 import { useState } from "react";
 import { Link } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Key } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, KeyRound, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function AdminChangePassword() {
-  const { isAuthenticated } = useAuth();
+  const { provider } = useProviderAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Bitte melden Sie sich zuerst an.</p>
-      </div>
-    );
-  }
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError(null);
+    setSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setError("Die Passwörter stimmen nicht überein.");
+      setError("Passwörter stimmen nicht überein");
       return;
     }
-
     if (newPassword.length < 6) {
-      setError("Das neue Passwort muss mindestens 6 Zeichen lang sein.");
+      setError("Neues Passwort muss mindestens 6 Zeichen lang sein");
       return;
     }
 
     setLoading(true);
-
     try {
-      const response = await fetch("/api/auth/change-password", {
+      const res = await fetch("/api/provider-auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Passwort-Änderung fehlgeschlagen.");
-        return;
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+      } else {
+        setSuccess(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
       }
-
-      setSuccess("Passwort erfolgreich geändert.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      setError("Verbindungsfehler. Bitte versuchen Sie es erneut.");
+    } catch {
+      setError("Netzwerkfehler");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!provider) return null;
+
   return (
-    <div className="min-h-screen flex flex-col bg-muted/20">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center gap-4">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-border sticky top-0 z-50">
+        <div className="container flex items-center gap-3 h-14">
           <Link href="/admin">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Zurück
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ArrowLeft className="h-4 w-4" /> Dashboard
             </Button>
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl">SmartStayChur</span>
-          </Link>
+          <h1 className="font-semibold flex items-center gap-2">
+            <KeyRound className="h-5 w-5" /> Passwort ändern
+          </h1>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Key className="w-8 h-8 text-primary" />
-            </div>
+      <div className="container py-8 max-w-md mx-auto">
+        <Card>
+          <CardHeader>
             <CardTitle>Passwort ändern</CardTitle>
-            <CardDescription>
-              Ändern Sie Ihr Anmelde-Passwort.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {error}
+                <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                  <AlertCircle className="h-4 w-4 shrink-0" /> {error}
                 </div>
               )}
               {success && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-md text-sm">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  {success}
+                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+                  <CheckCircle className="h-4 w-4 shrink-0" /> Passwort erfolgreich geändert
                 </div>
               )}
-
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Aktuelles Passwort</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
+                <Label>Aktuelles Passwort</Label>
+                <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Neues Passwort</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                />
+                <Label>Neues Passwort</Label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Neues Passwort bestätigen</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                />
+                <Label>Neues Passwort bestätigen</Label>
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
               </div>
-
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Speichern...
-                  </>
-                ) : (
-                  "Passwort ändern"
-                )}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Passwort ändern
               </Button>
             </form>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

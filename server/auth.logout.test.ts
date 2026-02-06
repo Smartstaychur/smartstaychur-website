@@ -41,6 +41,19 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
   return { ctx, clearedCookies };
 }
 
+function createPublicContext(): TrpcContext {
+  return {
+    user: null,
+    req: {
+      protocol: "https",
+      headers: {},
+    } as TrpcContext["req"],
+    res: {
+      clearCookie: () => {},
+    } as TrpcContext["res"],
+  };
+}
+
 describe("auth.logout", () => {
   it("clears the session cookie and reports success", async () => {
     const { ctx, clearedCookies } = createAuthContext();
@@ -58,5 +71,54 @@ describe("auth.logout", () => {
       httpOnly: true,
       path: "/",
     });
+  });
+});
+
+describe("hotel.list", () => {
+  it("returns an array (possibly empty without DB)", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.hotel.list({});
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("accepts filter parameters", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.hotel.list({ stars: 4, search: "test" });
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+describe("restaurant.list", () => {
+  it("returns an array (possibly empty without DB)", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.restaurant.list({});
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("accepts filter parameters", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.restaurant.list({ cuisineType: "Schweizerisch" });
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+describe("auth.me", () => {
+  it("returns user when authenticated", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.auth.me();
+    expect(result).toBeDefined();
+    expect(result?.openId).toBe("sample-user");
+  });
+
+  it("returns null when not authenticated", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.auth.me();
+    expect(result).toBeNull();
   });
 });

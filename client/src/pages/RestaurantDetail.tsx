@@ -1,435 +1,288 @@
-import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
-  ExternalLink,
-  Clock,
-  Leaf,
-  ArrowLeft,
-  Calendar,
-  Utensils
+import {
+  MapPin, Phone, Mail, Globe, ExternalLink, ArrowLeft, UtensilsCrossed,
+  Clock, Leaf, TreePine, Armchair, Accessibility, CalendarOff, FileText
 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { WEEKDAYS_DE, type OpeningHours } from "../../../shared/types";
 
 export default function RestaurantDetail() {
   const params = useParams<{ slug: string }>();
-  const { data: restaurant, isLoading } = trpc.restaurants.getBySlug.useQuery({ slug: params.slug || "" });
-  const { data: menuItems } = trpc.menuItems.getByRestaurantId.useQuery(
-    { restaurantId: restaurant?.id || 0 },
-    { enabled: !!restaurant?.id }
-  );
-  const { data: menuCategories } = trpc.menuCategories.getByRestaurantId.useQuery(
-    { restaurantId: restaurant?.id || 0 },
-    { enabled: !!restaurant?.id }
-  );
-  const { data: dailySpecials } = trpc.dailySpecials.getByRestaurantId.useQuery(
-    { restaurantId: restaurant?.id || 0 },
-    { enabled: !!restaurant?.id }
+  const { data: restaurant, isLoading, error } = trpc.restaurant.getBySlug.useQuery(
+    { slug: params.slug || "" },
+    { enabled: !!params.slug }
   );
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <div className="container py-12">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-muted rounded w-1/3" />
+            <div className="h-64 bg-muted rounded" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!restaurant) {
+  if (error || !restaurant) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold mb-4">Restaurant nicht gefunden</h1>
-        <Link href="/restaurants">
-          <Button>Zurück zur Übersicht</Button>
-        </Link>
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <div className="container py-12 text-center">
+          <UtensilsCrossed className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Restaurant nicht gefunden</h1>
+          <Link href="/restaurants"><Button variant="outline">Zurück zur Übersicht</Button></Link>
+        </div>
+        <Footer />
       </div>
     );
   }
 
-  // Parse opening hours if stored as JSON
-  let openingHours: Record<string, string> = {};
-  if (restaurant.openingHours) {
-    try {
-      openingHours = typeof restaurant.openingHours === 'string' 
-        ? JSON.parse(restaurant.openingHours) 
-        : restaurant.openingHours;
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-
-  const dayNames: Record<string, string> = {
-    monday: "Montag",
-    tuesday: "Dienstag",
-    wednesday: "Mittwoch",
-    thursday: "Donnerstag",
-    friday: "Freitag",
-    saturday: "Samstag",
-    sunday: "Sonntag"
-  };
-
-  // Group menu items by category
-  const menuByCategory = menuItems?.reduce((acc, item) => {
-    const categoryId = item.categoryId || 0;
-    if (!acc[categoryId]) acc[categoryId] = [];
-    acc[categoryId].push(item);
-    return acc;
-  }, {} as Record<number, typeof menuItems>);
+  const openingHours = restaurant.openingHours as OpeningHours | null;
+  const closedDays = restaurant.closedDays as string[] | null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/20">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl">SmartStayChur</span>
-          </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/hotels" className="text-sm font-medium hover:text-primary transition-colors">
-              Hotels
-            </Link>
-            <Link href="/restaurants" className="text-sm font-medium text-primary">
-              Restaurants
-            </Link>
-            <Link href="/erlebnisse" className="text-sm font-medium hover:text-primary transition-colors">
-              Erlebnisse
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <Navbar />
 
-      <main className="flex-1">
-        {/* Breadcrumb & Title */}
-        <section className="bg-gradient-to-br from-secondary/10 to-transparent py-8">
-          <div className="container">
-            <Link href="/restaurants" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Zurück zur Übersicht
-            </Link>
-            
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl md:text-4xl font-bold">{restaurant.name}</h1>
-                  {restaurant.cuisineType && (
-                    <Badge variant="secondary">{restaurant.cuisineType}</Badge>
+      <div className="container py-8">
+        <Link href="/restaurants">
+          <Button variant="ghost" size="sm" className="gap-1 mb-4">
+            <ArrowLeft className="h-4 w-4" /> Alle Restaurants
+          </Button>
+        </Link>
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
+              {restaurant.name}
+            </h1>
+            {restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {restaurant.cuisineTypes.map((ct) => (
+                  <Badge key={ct} variant="secondary">{ct}</Badge>
+                ))}
+              </div>
+            )}
+            {restaurant.address && (
+              <p className="text-muted-foreground flex items-center gap-1 mt-2">
+                <MapPin className="h-4 w-4" /> {restaurant.address}, {restaurant.postalCode} {restaurant.city}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {restaurant.menuUrl && (
+              <a href={restaurant.menuUrl} target="_blank" rel="noopener noreferrer">
+                <Button className="gap-1">
+                  <FileText className="h-4 w-4" /> Menükarte
+                </Button>
+              </a>
+            )}
+            {restaurant.reservationUrl && (
+              <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-1">
+                  Reservieren <ExternalLink className="h-4 w-4" />
+                </Button>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Main Image */}
+        {restaurant.mainImage && (
+          <div className="rounded-xl overflow-hidden mb-8">
+            <img src={restaurant.mainImage} alt={restaurant.name} className="w-full h-64 md:h-96 object-cover" />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Description */}
+            {restaurant.descriptionDe && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-3">Über das Restaurant</h2>
+                  <p className="text-muted-foreground whitespace-pre-line">{restaurant.descriptionDe}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opening Hours */}
+            {openingHours && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" /> Öffnungszeiten
+                  </h2>
+                  <div className="space-y-2">
+                    {Object.entries(WEEKDAYS_DE).map(([key, label]) => {
+                      const hours = openingHours[key as keyof OpeningHours];
+                      const isToday = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() === key;
+                      return (
+                        <div
+                          key={key}
+                          className={`flex justify-between items-center py-2 px-3 rounded ${
+                            isToday ? "bg-primary/5 font-medium" : ""
+                          }`}
+                        >
+                          <span className="text-sm">{label}</span>
+                          {hours ? (
+                            <span className="text-sm text-green-600">{hours.open} – {hours.close}</span>
+                          ) : (
+                            <span className="text-sm text-red-500">Geschlossen</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {restaurant.openingHoursText && (
+                    <p className="text-sm text-muted-foreground mt-3">{restaurant.openingHoursText}</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Closed Days / Ruhetage */}
+            {closedDays && closedDays.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <CalendarOff className="h-5 w-5 text-red-500" /> Ruhetage
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {closedDays.map((day) => (
+                      <Badge key={day} variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
+                        {WEEKDAYS_DE[day] || day}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Features */}
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Merkmale</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {restaurant.vegetarianOptions && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Leaf className="h-4 w-4 text-green-500" /> Vegetarische Optionen
+                    </div>
+                  )}
+                  {restaurant.veganOptions && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Leaf className="h-4 w-4 text-green-600" /> Vegane Optionen
+                    </div>
+                  )}
+                  {restaurant.glutenFreeOptions && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Leaf className="h-4 w-4 text-amber-500" /> Glutenfreie Optionen
+                    </div>
+                  )}
+                  {restaurant.outdoorSeating && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Armchair className="h-4 w-4 text-primary" /> Aussensitzplätze
+                    </div>
+                  )}
+                  {restaurant.terrace && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <TreePine className="h-4 w-4 text-primary" /> Terrasse
+                    </div>
+                  )}
+                  {restaurant.garden && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <TreePine className="h-4 w-4 text-green-500" /> Garten
+                    </div>
+                  )}
+                  {restaurant.wheelchairAccessible && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Accessibility className="h-4 w-4 text-primary" /> Rollstuhlgerecht
+                    </div>
+                  )}
+                  {restaurant.reservationRequired && (
+                    <div className="flex items-center gap-2 text-sm text-amber-600">
+                      Reservation empfohlen
+                    </div>
                   )}
                 </div>
-                <p className="flex items-center text-muted-foreground">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  {restaurant.address}, {restaurant.postalCode} {restaurant.city}
-                </p>
-              </div>
-              
-              {restaurant.reservationUrl && (
-                <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
-                  <Button size="lg" className="gap-2">
-                    Tisch reservieren <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </a>
-              )}
-            </div>
+                {restaurant.ambiance && (
+                  <p className="text-sm text-muted-foreground mt-3">Ambiente: {restaurant.ambiance}</p>
+                )}
+                {restaurant.priceLevel && (
+                  <p className="text-sm text-muted-foreground mt-1">Preisklasse: {restaurant.priceLevel}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Gallery */}
+            {restaurant.galleryImages && restaurant.galleryImages.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Bildergalerie</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {restaurant.galleryImages.map((img, i) => (
+                      <img key={i} src={img} alt={`${restaurant.name} ${i + 1}`} className="rounded-lg h-40 w-full object-cover" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </section>
 
-        <div className="container py-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Description */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Über das Restaurant</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {restaurant.description || restaurant.shortDescription}
-                  </p>
-                  
-                  {/* Features */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {restaurant.vegetarianOptions && (
-                      <Badge variant="outline">
-                        <Leaf className="w-3 h-3 mr-1" /> Vegetarische Optionen
-                      </Badge>
-                    )}
-                    {restaurant.veganOptions && (
-                      <Badge variant="outline">
-                        <Leaf className="w-3 h-3 mr-1" /> Vegane Optionen
-                      </Badge>
-                    )}
-                    {restaurant.glutenFreeOptions && (
-                      <Badge variant="outline">Glutenfrei</Badge>
-                    )}
-                    {restaurant.outdoorSeating && (
-                      <Badge variant="outline">Terrasse</Badge>
-                    )}
-                    {restaurant.wheelchairAccessible && (
-                      <Badge variant="outline">Barrierefrei</Badge>
-                    )}
-                    {restaurant.takeaway && (
-                      <Badge variant="outline">Take-Away</Badge>
-                    )}
-                    {restaurant.delivery && (
-                      <Badge variant="outline">Lieferservice</Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Menu & Daily Specials Tabs */}
-              <Card>
-                <Tabs defaultValue="menu">
-                  <CardHeader>
-                    <TabsList>
-                      <TabsTrigger value="menu">Speisekarte</TabsTrigger>
-                      <TabsTrigger value="specials">Tagesmenüs</TabsTrigger>
-                    </TabsList>
-                  </CardHeader>
-                  <CardContent>
-                    <TabsContent value="menu" className="mt-0">
-                      {menuItems && menuItems.length > 0 ? (
-                        <div className="space-y-6">
-                          {menuCategories?.map((category) => (
-                            <div key={category.id}>
-                              <h3 className="font-semibold text-lg mb-3 border-b pb-2">
-                                {category.name}
-                              </h3>
-                              <div className="space-y-3">
-                                {menuByCategory?.[category.id]?.map((item) => (
-                                  <div key={item.id} className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-medium">{item.name}</span>
-                                        {item.isVegetarian && (
-                                          <Badge variant="outline" className="text-xs py-0">
-                                            <Leaf className="w-2 h-2 mr-1" /> V
-                                          </Badge>
-                                        )}
-                                        {item.isVegan && (
-                                          <Badge variant="outline" className="text-xs py-0">
-                                            <Leaf className="w-2 h-2 mr-1" /> Vegan
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      {item.description && (
-                                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                                      )}
-                                    </div>
-                                    <span className="font-semibold text-primary ml-4">
-                                      CHF {item.price}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                          
-                          {/* Items without category */}
-                          {menuByCategory?.[0] && menuByCategory[0].length > 0 && (
-                            <div>
-                              <h3 className="font-semibold text-lg mb-3 border-b pb-2">
-                                Weitere Gerichte
-                              </h3>
-                              <div className="space-y-3">
-                                {menuByCategory[0].map((item) => (
-                                  <div key={item.id} className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-medium">{item.name}</span>
-                                        {item.isVegetarian && (
-                                          <Badge variant="outline" className="text-xs py-0">V</Badge>
-                                        )}
-                                      </div>
-                                      {item.description && (
-                                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                                      )}
-                                    </div>
-                                    <span className="font-semibold text-primary ml-4">
-                                      CHF {item.price}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Utensils className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          {restaurant.menuUrl ? (
-                            <>
-                              <p className="mb-4">Speisekarte als PDF verfügbar:</p>
-                              <a href={restaurant.menuUrl} target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" className="gap-2">
-                                  <ExternalLink className="w-4 h-4" />
-                                  Speisekarte ansehen
-                                </Button>
-                              </a>
-                            </>
-                          ) : (
-                            <>
-                              <p>Speisekarte wird noch ergänzt.</p>
-                              <p className="text-sm">Bitte kontaktieren Sie das Restaurant direkt.</p>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="specials" className="mt-0">
-                      {dailySpecials && dailySpecials.length > 0 ? (
-                        <div className="space-y-4">
-                          {dailySpecials.map((special) => (
-                            <div key={special.id} className="p-4 border rounded-lg bg-accent/10">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                                <Calendar className="w-4 h-4" />
-                                {new Date(special.date).toLocaleDateString('de-CH', {
-                                  weekday: 'long',
-                                  day: 'numeric',
-                                  month: 'long'
-                                })}
-                              </div>
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-semibold">{special.name}</h4>
-                                  {special.description && (
-                                    <p className="text-sm text-muted-foreground">{special.description}</p>
-                                  )}
-                                  <div className="flex gap-2 mt-2">
-                                    {special.isVegetarian && (
-                                      <Badge variant="outline" className="text-xs">Vegetarisch</Badge>
-                                    )}
-                                    {special.isVegan && (
-                                      <Badge variant="outline" className="text-xs">Vegan</Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <span className="text-xl font-bold text-primary">
-                                  CHF {special.price}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>Keine aktuellen Tagesmenüs verfügbar.</p>
-                        </div>
-                      )}
-                    </TabsContent>
-                  </CardContent>
-                </Tabs>
-              </Card>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Opening Hours */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Öffnungszeiten
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {Object.keys(openingHours).length > 0 ? (
-                    <div className="space-y-2">
-                      {Object.entries(dayNames).map(([key, name]) => (
-                        <div key={key} className="flex justify-between text-sm">
-                          <span>{name}</span>
-                          <span className="text-muted-foreground">
-                            {openingHours[key] || "Geschlossen"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Öffnungszeiten auf Anfrage
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Contact Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Kontakt</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>{restaurant.address}, {restaurant.postalCode} {restaurant.city}</span>
-                  </div>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-lg font-semibold mb-4">Kontakt</h2>
+                <div className="space-y-3">
                   {restaurant.phone && (
-                    <a href={`tel:${restaurant.phone}`} className="flex items-center gap-2 text-sm hover:text-primary">
-                      <Phone className="w-4 h-4" />
-                      {restaurant.phone}
+                    <a href={`tel:${restaurant.phone}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
+                      <Phone className="h-4 w-4 text-muted-foreground" /> {restaurant.phone}
                     </a>
                   )}
                   {restaurant.email && (
-                    <a href={`mailto:${restaurant.email}`} className="flex items-center gap-2 text-sm hover:text-primary">
-                      <Mail className="w-4 h-4" />
-                      {restaurant.email}
+                    <a href={`mailto:${restaurant.email}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
+                      <Mail className="h-4 w-4 text-muted-foreground" /> {restaurant.email}
                     </a>
                   )}
                   {restaurant.website && (
-                    <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:text-primary">
-                      <Globe className="w-4 h-4" />
-                      Website besuchen
+                    <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
+                      <Globe className="h-4 w-4 text-muted-foreground" /> Webseite besuchen
                     </a>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {restaurant.menuUrl && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold mb-3">Menükarte</h2>
+                  <a href={restaurant.menuUrl} target="_blank" rel="noopener noreferrer">
+                    <Button className="w-full gap-1">
+                      <FileText className="h-4 w-4" /> Menü ansehen
+                    </Button>
+                  </a>
                 </CardContent>
               </Card>
-
-              {/* Reservation */}
-              {(restaurant.reservationUrl || restaurant.phone) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Reservierung</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {restaurant.reservationUrl && (
-                      <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
-                        <Button className="w-full gap-2">
-                          Online reservieren <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </a>
-                    )}
-                    {restaurant.phone && (
-                      <a href={`tel:${restaurant.phone}`}>
-                        <Button variant="outline" className="w-full gap-2">
-                          <Phone className="w-4 h-4" /> Anrufen
-                        </Button>
-                      </a>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="border-t py-8 bg-white">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} SmartStayChur. Alle Rechte vorbehalten.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

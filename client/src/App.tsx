@@ -9,13 +9,11 @@ import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
 import Restaurants from "./pages/Restaurants";
 import RestaurantDetail from "./pages/RestaurantDetail";
-import Erlebnisse from "./pages/Erlebnisse";
 import Admin from "./pages/Admin";
-import AdminDailySpecials from "./pages/AdminDailySpecials";
-import AdminProviders from "./pages/AdminProviders";
-import AdminChangePassword from "./pages/AdminChangePassword";
 import AdminHotels from "./pages/AdminHotels";
 import AdminRestaurants from "./pages/AdminRestaurants";
+import AdminProviders from "./pages/AdminProviders";
+import AdminChangePassword from "./pages/AdminChangePassword";
 
 function Router() {
   return (
@@ -25,13 +23,11 @@ function Router() {
       <Route path="/hotels/:slug" component={HotelDetail} />
       <Route path="/restaurants" component={Restaurants} />
       <Route path="/restaurants/:slug" component={RestaurantDetail} />
-      <Route path="/erlebnisse" component={Erlebnisse} />
       <Route path="/admin" component={Admin} />
-      <Route path="/admin/daily-specials" component={AdminDailySpecials} />
-      <Route path="/admin/providers" component={AdminProviders} />
-      <Route path="/admin/change-password" component={AdminChangePassword} />
       <Route path="/admin/hotels" component={AdminHotels} />
       <Route path="/admin/restaurants" component={AdminRestaurants} />
+      <Route path="/admin/providers" component={AdminProviders} />
+      <Route path="/admin/password" component={AdminChangePassword} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

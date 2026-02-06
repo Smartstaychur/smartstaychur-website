@@ -1,100 +1,47 @@
-# SmartStayChur - Project TODO
+# SmartStayChur TODO
 
-## Phase 1: Datenbankschema
-- [x] Hotels-Tabelle mit erweiterten Feldern
-- [x] Zimmertypen-Tabelle (Name, Preis, Betten, Ausstattung wie Balkon, Babybett, Minibar)
-- [x] Restaurants-Tabelle mit Öffnungszeiten (pro Wochentag)
-- [x] Menükarten-Tabelle (Kategorien, Gerichte, Preise, vegetarisch/vegan)
-- [x] Tagesmenü-Tabelle (Daily Specials mit Datum)
-- [x] Erlebnisse-Tabelle
-- [x] Seed-Daten für 19 Hotels
-- [x] Seed-Daten für 75 Restaurants
-- [x] Seed-Daten für 15 Erlebnisse
+## Datenbank & Schema
+- [x] Hotels-Tabelle (name, slug, stars, address, priceFrom, priceTo, description, amenities, images, contact)
+- [x] Restaurants-Tabelle (name, slug, cuisineTypes, openingHours, menuUrl, description, images, contact)
+- [x] Providers-Tabelle (username, passwordHash, role, linkedHotelId/linkedRestaurantId)
+- [x] DB-Migration ausführen
 
-## Phase 2: Startseite
-- [x] Header mit Navigation (Hotels, Restaurants, Erlebnisse, Admin)
-- [x] Hero-Bereich mit Statistiken (19/75/15)
-- [x] KI-Reiseassistent Suchfeld
-- [x] Kategoriekarten (Hotels, Restaurants, Erlebnisse)
-- [x] Footer mit Links
+## Backend - Auth
+- [x] Passwort-basiertes Login (POST /api/auth/login)
+- [x] Passwort ändern (POST /api/auth/change-password)
+- [x] Provider-Session via JWT-Cookie
+- [x] Admin kann Anbieter-Konten erstellen
 
-## Phase 3: Hotels
-- [x] Hotels-Übersichtsseite mit Suche und Sterne-Filter
-- [x] Hotel-Detailseiten mit Zimmertypen
-- [x] Preisanzeige pro Zimmertyp
-- [x] Ausstattungsdetails (Balkon, Babybett, WLAN etc.)
-- [x] Direktbuchungs-Link
+## Backend - tRPC Routen
+- [x] hotel.list (öffentlich, mit Filter nach Sternen)
+- [x] hotel.getBySlug (öffentlich)
+- [x] hotel.update (geschützt, nur eigenes Hotel)
+- [x] restaurant.list (öffentlich, mit Filter nach Küchen-Typ)
+- [x] restaurant.getBySlug (öffentlich)
+- [x] restaurant.update (geschützt, nur eigenes Restaurant)
+- [x] provider.list (nur Admin)
+- [x] provider.create (nur Admin)
 
-## Phase 4: Restaurants
-- [x] Restaurants-Übersichtsseite mit Suche
-- [x] Restaurant-Detailseiten
-- [ ] Öffnungszeiten-Anzeige (Mo-So) - Struktur vorhanden, Daten fehlen
-- [ ] Menükarte mit Kategorien und Preisen - Struktur vorhanden, Daten fehlen
-- [ ] Tagesmenü / Daily Specials - Struktur vorhanden, Daten fehlen
-- [ ] Reservierungslink
+## Frontend - Öffentliche Seiten
+- [x] Home-Seite (Landingpage mit Suche und Featured Hotels/Restaurants)
+- [x] Hotels-Übersicht (Karten mit Sternen-Filter)
+- [x] Hotel-Detailseite (Preise, Beschreibung, Ausstattung, Kontakt, Bilder)
+- [x] Restaurants-Übersicht (Karten mit Küchen-Typ-Filter)
+- [x] Restaurant-Detailseite (Öffnungszeiten, Menü-Link, Küchen-Typ, Kontakt)
 
-## Phase 5: Erlebnisse
-- [x] Erlebnisse-Übersichtsseite
-- [x] 15 Erlebnisse (Stadtführungen, Wanderungen, Kultur)
-- [ ] Erlebnis-Detailseiten
+## Frontend - Admin-Bereich
+- [x] Login-Seite (Benutzername/Passwort)
+- [x] Admin-Dashboard (Übersicht)
+- [x] Hotel-Bearbeitung (Preise, Beschreibung, Ausstattung, Bilder)
+- [x] Restaurant-Bearbeitung (Öffnungszeiten, Menü-URL, Küchen-Typ)
+- [x] Anbieter-Verwaltung (nur Admin: Konten erstellen/verwalten)
+- [x] Passwort ändern
 
-## Phase 6: Admin-Portal für Anbieter
-- [x] Login mit OAuth
-- [x] Dashboard nach Login
-- [ ] Hotels: eigene Daten bearbeiten (Formular)
-- [ ] Hotels: Zimmertypen hinzufügen/bearbeiten
-- [ ] Restaurants: eigene Daten bearbeiten
-- [ ] Restaurants: Menükarte pflegen
-- [ ] Restaurants: Tagesmenü aktualisieren
-
-## Phase 7: KI-Optimierung
-- [x] llms.txt erstellt
-- [x] ai.txt erstellt
-- [x] API-Feed /api/feeds/hotels.json
-- [x] API-Feed /api/feeds/restaurants.json
-- [x] API-Feed /api/feeds/experiences.json
-- [x] API-Feed /api/feeds/daily-specials.json
-- [ ] Schema.org JSON-LD auf Detailseiten
-
-## Behobene Probleme
-- [x] Erlebnisse-Seite funktioniert jetzt
-- [x] API-Feeds funktionieren jetzt
-- [x] Hotels haben Preisstruktur (Daten müssen noch ergänzt werden)
-- [x] Zimmertypen-Struktur vorhanden
+## Seed-Daten
+- [x] Hotel-Seed mit Preisen und Ausstattung
+- [x] Restaurant-Seed mit Öffnungszeiten und Menü-URLs
 
 ## Tests
-- [x] API-Tests für Hotels, Restaurants, Erlebnisse
-- [x] Statistik-API Test
-- [x] Daily Specials API Test
-- [x] Alle Tests bestanden (10/10)
-
-## Noch zu erledigen
-- [ ] Zimmertypen mit Beispieldaten befüllen
-- [ ] Menükarten mit Beispieldaten befüllen
-- [ ] Tagesmenüs mit Beispieldaten befüllen
-- [ ] Öffnungszeiten für Restaurants eintragen
-- [ ] Admin-Formulare für Datenpflege
-- [ ] Erlebnis-Detailseiten
-
-## Neue Aufgaben (05.02.2026)
-- [ ] Admin-Seite reparieren (funktioniert nicht)
-- [x] Öffnungszeiten für alle 75 Restaurants recherchiert (46 aktualisiert, 27 ohne Daten)
-- [ ] Menükarten für Restaurants hochladen
-
-## Erweiterungen (05.02.2026 - Abend)
-- [x] Speisekarten-URLs in Datenbank eintragen (31 Restaurants)
-- [x] Speisekarten KI-lesbar auf Restaurant-Seiten anzeigen
-- [x] Daily Specials Eingabeformular für Restaurants
-- [x] Hotel-Zimmertypen mit Preisen recherchiert (14 Hotels aktualisiert)
-- [x] Hotel-Buchungslinks hinzugefügt
-- [ ] Restaurant-Reservierungsmöglichkeiten (Link/Tel/Email)
-- [x] API-Feeds für KI-Agenten optimiert (Hotels, Restaurants, Daily Specials)
-- [x] llms.txt und ai.txt mit detaillierten Anweisungen aktualisiert
-
-## KI-Auffindbarkeit (05.02.2026 - Priorität HOCH)
-- [x] robots.txt für KI-Crawler optimiert (GPTBot, Google-Extended, Claude-Web, etc.)
-- [x] sitemap.xml dynamisch generiert für alle Seiten
-- [x] Schema.org JSON-LD auf allen Seiten eingebettet (WebSite, TouristInformationCenter)
-- [x] Meta-Tags und OpenGraph für KI-Referenzierung (inkl. ai:purpose, ai:api)
-- [x] API-Dokumentation für KI-Agenten (ai-plugin.json, openapi.json)
-- [x] On-Site KI-Suchfunktion implementiert
+- [x] Auth-Tests (Login, Passwort ändern)
+- [x] Hotel-Routen-Tests
+- [x] Restaurant-Routen-Tests

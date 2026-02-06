@@ -1,244 +1,404 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { useProviderAuth } from "@/hooks/useProviderAuth";
+import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  MapPin, ArrowLeft, Loader2, Save, UtensilsCrossed, Edit, CheckCircle2, AlertCircle, Clock
-} from "lucide-react";
+import { ArrowLeft, UtensilsCrossed, Save, Loader2, Check, Plus, X } from "lucide-react";
+import { toast } from "sonner";
+import { CUISINE_TYPES, WEEKDAYS_DE, type OpeningHours, type OpeningHoursEntry } from "../../../shared/types";
 
-const DAYS = [
-  { key: "monday", label: "Montag" },
-  { key: "tuesday", label: "Dienstag" },
-  { key: "wednesday", label: "Mittwoch" },
-  { key: "thursday", label: "Donnerstag" },
-  { key: "friday", label: "Freitag" },
-  { key: "saturday", label: "Samstag" },
-  { key: "sunday", label: "Sonntag" },
-];
+const WEEKDAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 
 export default function AdminRestaurants() {
-  const { user, isAuthenticated } = useAuth();
-  const isAdmin = user?.role === "admin";
-  
-  const { data: restaurants, isLoading } = trpc.restaurants.list.useQuery();
-  const updateRestaurant = trpc.restaurants.update.useMutation();
-  
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editData, setEditData] = useState<Record<string, any>>({});
-  const [saveStatus, setSaveStatus] = useState<{ id: number; status: "success" | "error"; message: string } | null>(null);
+  const { provider } = useProviderAuth();
+  const isAdmin = provider?.role === "admin";
 
-  const visibleRestaurants = isAdmin 
-    ? restaurants 
-    : restaurants?.filter(r => r.id === user?.restaurantId);
+  const { data: allRestaurants } = trpc.restaurant.list.useQuery({}, { enabled: isAdmin });
+  const { data: myRestaurant } = trpc.restaurant.getById.useQuery(
+    { id: provider?.linkedRestaurantId || 0 },
+    { enabled: !isAdmin && !!provider?.linkedRestaurantId }
+  );
 
-  const startEditing = (restaurant: any) => {
-    setEditingId(restaurant.id);
-    
-    // Parse opening hours
-    let openingHours: Record<string, string> = {};
-    if (restaurant.openingHours) {
-      try {
-        openingHours = typeof restaurant.openingHours === "string" 
-          ? JSON.parse(restaurant.openingHours) 
-          : restaurant.openingHours;
-      } catch {}
-    }
-    
-    setEditData({
-      name: restaurant.name || "",
-      cuisineType: restaurant.cuisineType || "",
-      shortDescription: restaurant.shortDescription || "",
-      description: restaurant.description || "",
-      phone: restaurant.phone || "",
-      email: restaurant.email || "",
-      website: restaurant.website || "",
-      menuUrl: restaurant.menuUrl || "",
-      openingHours,
-    });
-  };
+  const restaurants = isAdmin ? allRestaurants : myRestaurant ? [myRestaurant] : [];
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [form, setForm] = useState<Record<string, any>>({});
+  const [openingHours, setOpeningHours] = useState<OpeningHours>({});
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [closedDays, setClosedDays] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = async (id: number) => {
-    try {
-      const { openingHours, menuUrl, ...rest } = editData;
-      await updateRestaurant.mutateAsync({ 
-        id, 
-        data: {
-          ...rest,
-          openingHours: Object.keys(openingHours).length > 0 ? openingHours : undefined,
-        }
+  const { data: selectedRestaurant } = trpc.restaurant.getById.useQuery(
+    { id: selectedId || 0 },
+    { enabled: !!selectedId }
+  );
+
+  const updateMutation = trpc.restaurant.update.useMutation({
+    onSuccess: () => {
+      toast.success("Restaurant gespeichert");
+      setSaving(false);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setSaving(false);
+    },
+  });
+
+  useEffect(() => {
+    if (selectedRestaurant) {
+      setForm({
+        name: selectedRestaurant.name || "",
+        address: selectedRestaurant.address || "",
+        city: selectedRestaurant.city || "",
+        postalCode: selectedRestaurant.postalCode || "",
+        phone: selectedRestaurant.phone || "",
+        email: selectedRestaurant.email || "",
+        website: selectedRestaurant.website || "",
+        menuUrl: selectedRestaurant.menuUrl || "",
+        priceLevel: selectedRestaurant.priceLevel || "",
+        ambiance: selectedRestaurant.ambiance || "",
+        descriptionDe: selectedRestaurant.descriptionDe || "",
+        shortDescDe: selectedRestaurant.shortDescDe || "",
+        openingHoursText: selectedRestaurant.openingHoursText || "",
+        reservationUrl: selectedRestaurant.reservationUrl || "",
+        mainImage: selectedRestaurant.mainImage || "",
+        outdoorSeating: selectedRestaurant.outdoorSeating || false,
+        terrace: selectedRestaurant.terrace || false,
+        garden: selectedRestaurant.garden || false,
+        wheelchairAccessible: selectedRestaurant.wheelchairAccessible || false,
+        vegetarianOptions: selectedRestaurant.vegetarianOptions || false,
+        veganOptions: selectedRestaurant.veganOptions || false,
+        glutenFreeOptions: selectedRestaurant.glutenFreeOptions || false,
+        reservationRequired: selectedRestaurant.reservationRequired || false,
       });
-      setSaveStatus({ id, status: "success", message: "Gespeichert!" });
-      setEditingId(null);
-      setTimeout(() => setSaveStatus(null), 3000);
-    } catch (err: any) {
-      setSaveStatus({ id, status: "error", message: err.message || "Fehler beim Speichern" });
+      setOpeningHours((selectedRestaurant.openingHours as OpeningHours) || {});
+      setSelectedCuisines((selectedRestaurant.cuisineTypes as string[]) || []);
+      setClosedDays((selectedRestaurant.closedDays as string[]) || []);
+    }
+  }, [selectedRestaurant]);
+
+  useEffect(() => {
+    if (!isAdmin && provider?.linkedRestaurantId) {
+      setSelectedId(provider.linkedRestaurantId);
+    }
+  }, [isAdmin, provider]);
+
+  const updateHours = (day: string, field: "open" | "close", value: string) => {
+    setOpeningHours((prev) => ({
+      ...prev,
+      [day]: { ...(prev[day as keyof OpeningHours] || { open: "", close: "" }), [field]: value },
+    }));
+  };
+
+  const toggleClosedDay = (day: string) => {
+    if (closedDays.includes(day)) {
+      setClosedDays(closedDays.filter((d) => d !== day));
+    } else {
+      setClosedDays([...closedDays, day]);
+      // Remove opening hours for that day
+      const newHours = { ...openingHours };
+      delete newHours[day as keyof OpeningHours];
+      setOpeningHours(newHours);
     }
   };
 
-  const updateOpeningHour = (day: string, value: string) => {
-    setEditData({
-      ...editData,
-      openingHours: {
-        ...editData.openingHours,
-        [day]: value,
-      },
+  const toggleCuisine = (ct: string) => {
+    if (selectedCuisines.includes(ct)) {
+      setSelectedCuisines(selectedCuisines.filter((c) => c !== ct));
+    } else {
+      setSelectedCuisines([...selectedCuisines, ct]);
+    }
+  };
+
+  const handleSave = () => {
+    if (!selectedId) return;
+    setSaving(true);
+
+    // Clean opening hours: remove entries with empty values
+    const cleanedHours: OpeningHours = {};
+    for (const [day, hours] of Object.entries(openingHours)) {
+      if (hours && hours.open && hours.close) {
+        cleanedHours[day as keyof OpeningHours] = hours;
+      }
+    }
+
+    updateMutation.mutate({
+      id: selectedId,
+      name: form.name || undefined,
+      address: form.address || undefined,
+      city: form.city || undefined,
+      postalCode: form.postalCode || undefined,
+      phone: form.phone || undefined,
+      email: form.email || undefined,
+      website: form.website || undefined,
+      menuUrl: form.menuUrl || null,
+      cuisineTypes: selectedCuisines.length > 0 ? selectedCuisines : null,
+      priceLevel: form.priceLevel || undefined,
+      ambiance: form.ambiance || undefined,
+      descriptionDe: form.descriptionDe || undefined,
+      shortDescDe: form.shortDescDe || undefined,
+      openingHours: Object.keys(cleanedHours).length > 0 ? cleanedHours : undefined,
+      openingHoursText: form.openingHoursText || null,
+      closedDays: closedDays.length > 0 ? closedDays : null,
+      reservationUrl: form.reservationUrl || undefined,
+      mainImage: form.mainImage || null,
+      outdoorSeating: form.outdoorSeating,
+      terrace: form.terrace,
+      garden: form.garden,
+      wheelchairAccessible: form.wheelchairAccessible,
+      vegetarianOptions: form.vegetarianOptions,
+      veganOptions: form.veganOptions,
+      glutenFreeOptions: form.glutenFreeOptions,
+      reservationRequired: form.reservationRequired,
     });
   };
 
-  if (!isAuthenticated) {
-    return <div className="min-h-screen flex items-center justify-center"><p>Bitte anmelden.</p></div>;
-  }
+  if (!provider) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/20">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center gap-4">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-border sticky top-0 z-50">
+        <div className="container flex items-center gap-3 h-14">
           <Link href="/admin">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Zurück
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ArrowLeft className="h-4 w-4" /> Dashboard
             </Button>
           </Link>
-          <div className="flex items-center gap-2">
-            <UtensilsCrossed className="w-5 h-5 text-primary" />
-            <span className="font-bold text-xl">Restaurants verwalten</span>
-          </div>
+          <h1 className="font-semibold flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5" /> Restaurants verwalten
+          </h1>
         </div>
       </header>
 
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {visibleRestaurants?.map((restaurant) => (
-                <Card key={restaurant.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <UtensilsCrossed className="w-4 h-4" />
-                        {restaurant.name}
-                        {restaurant.cuisineType && <span className="text-sm text-muted-foreground">({restaurant.cuisineType})</span>}
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        {saveStatus?.id === restaurant.id && (
-                          <span className={`text-sm flex items-center gap-1 ${saveStatus.status === "success" ? "text-green-600" : "text-red-600"}`}>
-                            {saveStatus.status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            {saveStatus.message}
-                          </span>
-                        )}
-                        {editingId === restaurant.id ? (
-                          <Button size="sm" onClick={() => handleSave(restaurant.id)} disabled={updateRestaurant.isPending}>
-                            {updateRestaurant.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-                            Speichern
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" onClick={() => startEditing(restaurant)}>
-                            <Edit className="w-4 h-4 mr-1" />
-                            Bearbeiten
-                          </Button>
-                        )}
-                      </div>
+      <div className="container py-8">
+        {/* Restaurant Selection (admin) */}
+        {isAdmin && (
+          <div className="mb-6">
+            <Label className="mb-2 block">Restaurant auswählen</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {(restaurants || []).map((r) => (
+                <Card
+                  key={r.id}
+                  className={`cursor-pointer transition-all ${selectedId === r.id ? "ring-2 ring-primary" : "hover:shadow-md"}`}
+                  onClick={() => setSelectedId(r.id)}
+                >
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <UtensilsCrossed className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{r.address}</p>
                     </div>
-                  </CardHeader>
-                  
-                  {editingId === restaurant.id ? (
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Name</Label>
-                          <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Küchentyp</Label>
-                          <Input value={editData.cuisineType} onChange={(e) => setEditData({ ...editData, cuisineType: e.target.value })} placeholder="z.B. Bündner Küche, Italienisch" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Telefon</Label>
-                          <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>E-Mail</Label>
-                          <Input value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Webseite</Label>
-                          <Input value={editData.website} onChange={(e) => setEditData({ ...editData, website: e.target.value })} placeholder="https://..." />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Menükarte URL</Label>
-                          <Input value={editData.menuUrl} onChange={(e) => setEditData({ ...editData, menuUrl: e.target.value })} placeholder="https://... (PDF oder Webseite)" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Kurzbeschreibung</Label>
-                        <Textarea value={editData.shortDescription} onChange={(e) => setEditData({ ...editData, shortDescription: e.target.value })} rows={2} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Beschreibung</Label>
-                        <Textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows={4} />
-                      </div>
-                      
-                      {/* Opening Hours */}
-                      <div className="space-y-3">
-                        <Label className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          Öffnungszeiten
-                        </Label>
-                        <div className="grid gap-2">
-                          {DAYS.map(({ key, label }) => (
-                            <div key={key} className="flex items-center gap-3">
-                              <span className="w-24 text-sm font-medium">{label}</span>
-                              <Input
-                                className="flex-1"
-                                value={editData.openingHours?.[key] || ""}
-                                onChange={(e) => updateOpeningHour(key, e.target.value)}
-                                placeholder="z.B. 11:00-14:00, 17:00-22:00 oder Geschlossen"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Format: "11:00-14:00, 17:00-22:00" oder "Geschlossen" oder leer lassen.
-                        </p>
-                      </div>
-                      
-                      <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>Abbrechen</Button>
-                    </CardContent>
-                  ) : (
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground">Adresse:</span> {restaurant.address}, {restaurant.postalCode} {restaurant.city}</div>
-                        <div><span className="text-muted-foreground">Telefon:</span> {restaurant.phone || "–"}</div>
-                        <div><span className="text-muted-foreground">Küche:</span> {restaurant.cuisineType || "–"}</div>
-                        <div><span className="text-muted-foreground">Webseite:</span> {restaurant.website ? <a href={restaurant.website} target="_blank" className="text-primary hover:underline">{restaurant.website}</a> : "–"}</div>
-                      </div>
-                    </CardContent>
-                  )}
+                    {selectedId === r.id && <Check className="h-4 w-4 text-primary ml-auto" />}
+                  </CardContent>
                 </Card>
               ))}
-              
-              {visibleRestaurants?.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  {isAdmin ? "Keine Restaurants vorhanden." : "Ihnen ist kein Restaurant zugewiesen."}
-                </div>
-              )}
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        )}
+
+        {/* Edit Form */}
+        {selectedId && selectedRestaurant && (
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <Card>
+              <CardHeader><CardTitle>Grunddaten</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Adresse</Label>
+                  <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>PLZ</Label>
+                  <Input value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Stadt</Label>
+                  <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Telefon</Label>
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>E-Mail</Label>
+                  <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Webseite</Label>
+                  <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Menükarte-URL</Label>
+                  <Input value={form.menuUrl} onChange={(e) => setForm({ ...form, menuUrl: e.target.value })} placeholder="Link zur Menükarte (PDF oder Webseite)" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Reservierungs-URL</Label>
+                  <Input value={form.reservationUrl} onChange={(e) => setForm({ ...form, reservationUrl: e.target.value })} placeholder="Link zur Online-Reservierung" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Preisklasse</Label>
+                  <Input value={form.priceLevel} onChange={(e) => setForm({ ...form, priceLevel: e.target.value })} placeholder="z.B. $$ oder Mittel" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Ambiente</Label>
+                  <Input value={form.ambiance} onChange={(e) => setForm({ ...form, ambiance: e.target.value })} placeholder="z.B. Gemütlich, Elegant, Rustikal" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cuisine Types */}
+            <Card>
+              <CardHeader><CardTitle>Küchen-Typen</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {CUISINE_TYPES.map((ct) => (
+                    <Button
+                      key={ct}
+                      variant={selectedCuisines.includes(ct) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleCuisine(ct)}
+                    >
+                      {ct}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Opening Hours */}
+            <Card>
+              <CardHeader><CardTitle>Öffnungszeiten</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {WEEKDAY_KEYS.map((day) => {
+                  const isClosed = closedDays.includes(day);
+                  const hours = openingHours[day as keyof OpeningHours];
+                  return (
+                    <div key={day} className="flex items-center gap-4">
+                      <span className="w-28 text-sm font-medium">{WEEKDAYS_DE[day]}</span>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={!isClosed}
+                          onCheckedChange={() => toggleClosedDay(day)}
+                        />
+                        <span className="text-xs text-muted-foreground w-16">
+                          {isClosed ? "Ruhetag" : "Geöffnet"}
+                        </span>
+                      </div>
+                      {!isClosed && (
+                        <>
+                          <Input
+                            className="w-24"
+                            placeholder="09:00"
+                            value={hours?.open || ""}
+                            onChange={(e) => updateHours(day, "open", e.target.value)}
+                          />
+                          <span className="text-muted-foreground">–</span>
+                          <Input
+                            className="w-24"
+                            placeholder="22:00"
+                            value={hours?.close || ""}
+                            onChange={(e) => updateHours(day, "close", e.target.value)}
+                          />
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="space-y-2 mt-4">
+                  <Label>Zusätzliche Hinweise zu Öffnungszeiten</Label>
+                  <Textarea
+                    value={form.openingHoursText}
+                    onChange={(e) => setForm({ ...form, openingHoursText: e.target.value })}
+                    rows={2}
+                    placeholder="z.B. Küche bis 21:30, Warme Küche 11:30-14:00 und 17:30-21:30"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Description */}
+            <Card>
+              <CardHeader><CardTitle>Beschreibung</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kurzbeschreibung</Label>
+                  <Textarea value={form.shortDescDe} onChange={(e) => setForm({ ...form, shortDescDe: e.target.value })} rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Ausführliche Beschreibung</Label>
+                  <Textarea value={form.descriptionDe} onChange={(e) => setForm({ ...form, descriptionDe: e.target.value })} rows={6} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Image */}
+            <Card>
+              <CardHeader><CardTitle>Bild</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Hauptbild-URL</Label>
+                  <Input value={form.mainImage} onChange={(e) => setForm({ ...form, mainImage: e.target.value })} placeholder="https://..." />
+                </div>
+                {form.mainImage && (
+                  <img src={form.mainImage} alt="Vorschau" className="rounded-lg h-40 object-cover" />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Features */}
+            <Card>
+              <CardHeader><CardTitle>Merkmale</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: "vegetarianOptions", label: "Vegetarische Optionen" },
+                    { key: "veganOptions", label: "Vegane Optionen" },
+                    { key: "glutenFreeOptions", label: "Glutenfreie Optionen" },
+                    { key: "outdoorSeating", label: "Aussensitzplätze" },
+                    { key: "terrace", label: "Terrasse" },
+                    { key: "garden", label: "Garten" },
+                    { key: "wheelchairAccessible", label: "Rollstuhlgerecht" },
+                    { key: "reservationRequired", label: "Reservation empfohlen" },
+                  ].map((feat) => (
+                    <div key={feat.key} className="flex items-center justify-between">
+                      <Label className="cursor-pointer">{feat.label}</Label>
+                      <Switch
+                        checked={form[feat.key] || false}
+                        onCheckedChange={(checked) => setForm({ ...form, [feat.key]: checked })}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Save Button */}
+            <div className="flex justify-end pb-8">
+              <Button onClick={handleSave} disabled={saving} size="lg" className="gap-2">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Speichern
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!selectedId && !isAdmin && !provider?.linkedRestaurantId && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">Ihrem Konto ist noch kein Restaurant zugewiesen. Bitte kontaktieren Sie den Administrator.</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,186 +1,347 @@
+import { trpc } from "@/lib/trpc";
+import { useProviderAuth } from "@/hooks/useProviderAuth";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  MapPin, ArrowLeft, Loader2, Save, Hotel, Edit, CheckCircle2, AlertCircle
-} from "lucide-react";
+import { ArrowLeft, Hotel, Save, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
+import { HOTEL_AMENITIES } from "../../../shared/types";
 
 export default function AdminHotels() {
-  const { user, isAuthenticated } = useAuth();
-  const isAdmin = user?.role === "admin";
-  
-  const { data: hotels, isLoading } = trpc.hotels.list.useQuery();
-  const updateHotel = trpc.hotels.update.useMutation();
-  
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editData, setEditData] = useState<Record<string, string>>({});
-  const [saveStatus, setSaveStatus] = useState<{ id: number; status: "success" | "error"; message: string } | null>(null);
+  const { provider } = useProviderAuth();
+  const isAdmin = provider?.role === "admin";
 
-  // Filter hotels based on user role
-  const visibleHotels = isAdmin 
-    ? hotels 
-    : hotels?.filter(h => h.id === user?.hotelId);
+  // For admin: list all hotels. For hotelier: get their linked hotel
+  const { data: allHotels } = trpc.hotel.list.useQuery({}, { enabled: isAdmin });
+  const { data: myHotel } = trpc.hotel.getById.useQuery(
+    { id: provider?.linkedHotelId || 0 },
+    { enabled: !isAdmin && !!provider?.linkedHotelId }
+  );
 
-  const startEditing = (hotel: any) => {
-    setEditingId(hotel.id);
-    setEditData({
-      name: hotel.name || "",
-      shortDescription: hotel.shortDescription || "",
-      description: hotel.description || "",
-      phone: hotel.phone || "",
-      email: hotel.email || "",
-      website: hotel.website || "",
-      bookingUrl: hotel.bookingUrl || "",
-      priceFrom: hotel.priceFrom || "",
-      priceTo: hotel.priceTo || "",
+  const hotels = isAdmin ? allHotels : myHotel ? [myHotel] : [];
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [form, setForm] = useState<Record<string, any>>({});
+  const [saving, setSaving] = useState(false);
+
+  const { data: selectedHotel } = trpc.hotel.getById.useQuery(
+    { id: selectedId || 0 },
+    { enabled: !!selectedId }
+  );
+
+  const updateMutation = trpc.hotel.update.useMutation({
+    onSuccess: () => {
+      toast.success("Hotel gespeichert");
+      setSaving(false);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setSaving(false);
+    },
+  });
+
+  useEffect(() => {
+    if (selectedHotel) {
+      setForm({
+        name: selectedHotel.name || "",
+        stars: selectedHotel.stars || "",
+        address: selectedHotel.address || "",
+        city: selectedHotel.city || "",
+        postalCode: selectedHotel.postalCode || "",
+        phone: selectedHotel.phone || "",
+        email: selectedHotel.email || "",
+        website: selectedHotel.website || "",
+        bookingUrl: selectedHotel.bookingUrl || "",
+        descriptionDe: selectedHotel.descriptionDe || "",
+        shortDescDe: selectedHotel.shortDescDe || "",
+        priceFrom: selectedHotel.priceFrom ?? "",
+        priceTo: selectedHotel.priceTo ?? "",
+        checkInFrom: selectedHotel.checkInFrom || "",
+        checkInTo: selectedHotel.checkInTo || "",
+        checkOutFrom: selectedHotel.checkOutFrom || "",
+        checkOutTo: selectedHotel.checkOutTo || "",
+        specialFeatures: selectedHotel.specialFeatures || "",
+        mainImage: selectedHotel.mainImage || "",
+        // Amenities
+        wifiFree: selectedHotel.wifiFree || false,
+        parkingFree: selectedHotel.parkingFree || false,
+        parkingPaid: selectedHotel.parkingPaid || false,
+        breakfastIncluded: selectedHotel.breakfastIncluded || false,
+        petsAllowed: selectedHotel.petsAllowed || false,
+        petSurcharge: selectedHotel.petSurcharge || "",
+        familyFriendly: selectedHotel.familyFriendly || false,
+        wheelchairAccessible: selectedHotel.wheelchairAccessible || false,
+        elevator: selectedHotel.elevator || false,
+        spa: selectedHotel.spa || false,
+        pool: selectedHotel.pool || false,
+        gym: selectedHotel.gym || false,
+        restaurant: selectedHotel.restaurant || false,
+        bar: selectedHotel.bar || false,
+        roomService: selectedHotel.roomService || false,
+        airConditioning: selectedHotel.airConditioning || false,
+        balcony: selectedHotel.balcony || false,
+      });
+    }
+  }, [selectedHotel]);
+
+  // Auto-select for non-admin
+  useEffect(() => {
+    if (!isAdmin && provider?.linkedHotelId) {
+      setSelectedId(provider.linkedHotelId);
+    }
+  }, [isAdmin, provider]);
+
+  const handleSave = () => {
+    if (!selectedId) return;
+    setSaving(true);
+    updateMutation.mutate({
+      id: selectedId,
+      name: form.name || undefined,
+      stars: form.stars ? Number(form.stars) : undefined,
+      address: form.address || undefined,
+      city: form.city || undefined,
+      postalCode: form.postalCode || undefined,
+      phone: form.phone || undefined,
+      email: form.email || undefined,
+      website: form.website || undefined,
+      bookingUrl: form.bookingUrl || undefined,
+      descriptionDe: form.descriptionDe || undefined,
+      shortDescDe: form.shortDescDe || undefined,
+      priceFrom: form.priceFrom !== "" ? Number(form.priceFrom) : null,
+      priceTo: form.priceTo !== "" ? Number(form.priceTo) : null,
+      checkInFrom: form.checkInFrom || undefined,
+      checkInTo: form.checkInTo || undefined,
+      checkOutFrom: form.checkOutFrom || undefined,
+      checkOutTo: form.checkOutTo || undefined,
+      specialFeatures: form.specialFeatures || undefined,
+      mainImage: form.mainImage || null,
+      wifiFree: form.wifiFree,
+      parkingFree: form.parkingFree,
+      parkingPaid: form.parkingPaid,
+      breakfastIncluded: form.breakfastIncluded,
+      petsAllowed: form.petsAllowed,
+      petSurcharge: form.petSurcharge || undefined,
+      familyFriendly: form.familyFriendly,
+      wheelchairAccessible: form.wheelchairAccessible,
+      elevator: form.elevator,
+      spa: form.spa,
+      pool: form.pool,
+      gym: form.gym,
+      restaurant: form.restaurant,
+      bar: form.bar,
+      roomService: form.roomService,
+      airConditioning: form.airConditioning,
+      balcony: form.balcony,
     });
   };
 
-  const handleSave = async (id: number) => {
-    try {
-      await updateHotel.mutateAsync({ id, data: editData });
-      setSaveStatus({ id, status: "success", message: "Gespeichert!" });
-      setEditingId(null);
-      setTimeout(() => setSaveStatus(null), 3000);
-    } catch (err: any) {
-      setSaveStatus({ id, status: "error", message: err.message || "Fehler beim Speichern" });
-    }
-  };
-
-  if (!isAuthenticated) {
-    return <div className="min-h-screen flex items-center justify-center"><p>Bitte anmelden.</p></div>;
-  }
+  if (!provider) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/20">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center gap-4">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-border sticky top-0 z-50">
+        <div className="container flex items-center gap-3 h-14">
           <Link href="/admin">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Zurück
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ArrowLeft className="h-4 w-4" /> Dashboard
             </Button>
           </Link>
-          <div className="flex items-center gap-2">
-            <Hotel className="w-5 h-5 text-primary" />
-            <span className="font-bold text-xl">Hotels verwalten</span>
-          </div>
+          <h1 className="font-semibold flex items-center gap-2">
+            <Hotel className="h-5 w-5" /> Hotels verwalten
+          </h1>
         </div>
       </header>
 
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {visibleHotels?.map((hotel) => (
-                <Card key={hotel.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Hotel className="w-4 h-4" />
-                        {hotel.name}
-                        {hotel.stars && <span className="text-sm text-muted-foreground">({hotel.stars} Sterne)</span>}
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        {saveStatus?.id === hotel.id && (
-                          <span className={`text-sm flex items-center gap-1 ${saveStatus.status === "success" ? "text-green-600" : "text-red-600"}`}>
-                            {saveStatus.status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            {saveStatus.message}
-                          </span>
-                        )}
-                        {editingId === hotel.id ? (
-                          <Button size="sm" onClick={() => handleSave(hotel.id)} disabled={updateHotel.isPending}>
-                            {updateHotel.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-                            Speichern
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" onClick={() => startEditing(hotel)}>
-                            <Edit className="w-4 h-4 mr-1" />
-                            Bearbeiten
-                          </Button>
-                        )}
-                      </div>
+      <div className="container py-8">
+        {/* Hotel Selection (admin) */}
+        {isAdmin && (
+          <div className="mb-6">
+            <Label className="mb-2 block">Hotel auswählen</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {(hotels || []).map((h) => (
+                <Card
+                  key={h.id}
+                  className={`cursor-pointer transition-all ${selectedId === h.id ? "ring-2 ring-primary" : "hover:shadow-md"}`}
+                  onClick={() => setSelectedId(h.id)}
+                >
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <Hotel className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">{h.name}</p>
+                      <p className="text-xs text-muted-foreground">{h.address}</p>
                     </div>
-                  </CardHeader>
-                  
-                  {editingId === hotel.id ? (
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Name</Label>
-                          <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Telefon</Label>
-                          <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>E-Mail</Label>
-                          <Input value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Webseite</Label>
-                          <Input value={editData.website} onChange={(e) => setEditData({ ...editData, website: e.target.value })} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Preis ab (CHF)</Label>
-                          <Input value={editData.priceFrom} onChange={(e) => setEditData({ ...editData, priceFrom: e.target.value })} placeholder="z.B. 120" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Preis bis (CHF)</Label>
-                          <Input value={editData.priceTo} onChange={(e) => setEditData({ ...editData, priceTo: e.target.value })} placeholder="z.B. 280" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Buchungs-URL</Label>
-                        <Input value={editData.bookingUrl} onChange={(e) => setEditData({ ...editData, bookingUrl: e.target.value })} placeholder="https://..." />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Kurzbeschreibung</Label>
-                        <Textarea value={editData.shortDescription} onChange={(e) => setEditData({ ...editData, shortDescription: e.target.value })} rows={2} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Beschreibung</Label>
-                        <Textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows={5} />
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>Abbrechen</Button>
-                    </CardContent>
-                  ) : (
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground">Adresse:</span> {hotel.address}, {hotel.postalCode} {hotel.city}</div>
-                        <div><span className="text-muted-foreground">Telefon:</span> {hotel.phone || "–"}</div>
-                        <div><span className="text-muted-foreground">Preis:</span> {hotel.priceFrom ? `CHF ${hotel.priceFrom} – ${hotel.priceTo}` : "–"}</div>
-                        <div><span className="text-muted-foreground">Webseite:</span> {hotel.website ? <a href={hotel.website} target="_blank" className="text-primary hover:underline">{hotel.website}</a> : "–"}</div>
-                      </div>
-                    </CardContent>
-                  )}
+                    {selectedId === h.id && <Check className="h-4 w-4 text-primary ml-auto" />}
+                  </CardContent>
                 </Card>
               ))}
-              
-              {visibleHotels?.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  {isAdmin ? "Keine Hotels vorhanden." : "Ihnen ist kein Hotel zugewiesen."}
-                </div>
-              )}
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        )}
+
+        {/* Edit Form */}
+        {selectedId && selectedHotel && (
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <Card>
+              <CardHeader><CardTitle>Grunddaten</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sterne</Label>
+                  <Input type="number" min="1" max="5" value={form.stars} onChange={(e) => setForm({ ...form, stars: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Adresse</Label>
+                  <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>PLZ</Label>
+                  <Input value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Stadt</Label>
+                  <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Telefon</Label>
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>E-Mail</Label>
+                  <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Webseite</Label>
+                  <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Booking-URL</Label>
+                  <Input value={form.bookingUrl} onChange={(e) => setForm({ ...form, bookingUrl: e.target.value })} placeholder="Link zur Buchungsseite" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Prices */}
+            <Card>
+              <CardHeader><CardTitle>Preise</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Preis ab (CHF / Nacht)</Label>
+                  <Input type="number" value={form.priceFrom} onChange={(e) => setForm({ ...form, priceFrom: e.target.value })} placeholder="z.B. 120" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Preis bis (CHF / Nacht)</Label>
+                  <Input type="number" value={form.priceTo} onChange={(e) => setForm({ ...form, priceTo: e.target.value })} placeholder="z.B. 350" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Check-in/out */}
+            <Card>
+              <CardHeader><CardTitle>Check-in / Check-out</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Check-in ab</Label>
+                  <Input value={form.checkInFrom} onChange={(e) => setForm({ ...form, checkInFrom: e.target.value })} placeholder="z.B. 15:00" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Check-in bis</Label>
+                  <Input value={form.checkInTo} onChange={(e) => setForm({ ...form, checkInTo: e.target.value })} placeholder="z.B. 22:00" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Check-out ab</Label>
+                  <Input value={form.checkOutFrom} onChange={(e) => setForm({ ...form, checkOutFrom: e.target.value })} placeholder="z.B. 07:00" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Check-out bis</Label>
+                  <Input value={form.checkOutTo} onChange={(e) => setForm({ ...form, checkOutTo: e.target.value })} placeholder="z.B. 11:00" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Description */}
+            <Card>
+              <CardHeader><CardTitle>Beschreibung</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kurzbeschreibung</Label>
+                  <Textarea value={form.shortDescDe} onChange={(e) => setForm({ ...form, shortDescDe: e.target.value })} rows={2} placeholder="Kurze Beschreibung für die Übersicht" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Ausführliche Beschreibung</Label>
+                  <Textarea value={form.descriptionDe} onChange={(e) => setForm({ ...form, descriptionDe: e.target.value })} rows={6} placeholder="Detaillierte Beschreibung des Hotels" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Besonderheiten</Label>
+                  <Textarea value={form.specialFeatures} onChange={(e) => setForm({ ...form, specialFeatures: e.target.value })} rows={3} placeholder="z.B. Historisches Gebäude, Panoramablick..." />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Image */}
+            <Card>
+              <CardHeader><CardTitle>Bild</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Hauptbild-URL</Label>
+                  <Input value={form.mainImage} onChange={(e) => setForm({ ...form, mainImage: e.target.value })} placeholder="https://..." />
+                </div>
+                {form.mainImage && (
+                  <img src={form.mainImage} alt="Vorschau" className="rounded-lg h-40 object-cover" />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Amenities */}
+            <Card>
+              <CardHeader><CardTitle>Ausstattung</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {HOTEL_AMENITIES.map((amenity) => (
+                    <div key={amenity.key} className="flex items-center justify-between">
+                      <Label className="cursor-pointer">{amenity.label}</Label>
+                      <Switch
+                        checked={form[amenity.key] || false}
+                        onCheckedChange={(checked) => setForm({ ...form, [amenity.key]: checked })}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {form.petsAllowed && (
+                  <div className="mt-4 space-y-2">
+                    <Label>Haustier-Zuschlag</Label>
+                    <Input value={form.petSurcharge} onChange={(e) => setForm({ ...form, petSurcharge: e.target.value })} placeholder="z.B. CHF 25 pro Nacht" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Save Button */}
+            <div className="flex justify-end pb-8">
+              <Button onClick={handleSave} disabled={saving} size="lg" className="gap-2">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Speichern
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!selectedId && !isAdmin && !provider?.linkedHotelId && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Hotel className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">Ihrem Konto ist noch kein Hotel zugewiesen. Bitte kontaktieren Sie den Administrator.</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
