@@ -1,0 +1,237 @@
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "LodgingBusiness",
+            "@id": "https://www.smartstaychur.com/id/hotels/hotel-abc",
+            "address": "Ottostrasse 8",
+            "addressLocality": "7000 Chur",
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 46.8533,
+                "longitude": 9.5310768
+            },
+            "url": "https://www.hotelabc.ch/",
+            "telephone": "+41 81 254 13 13",
+            "email": "abc@hotelabc.ch",
+            "priceRange": "CHF 235-320",
+            "amenityFeature": [
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "wifi",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "parking",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "breakfastIncluded",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "familyRooms",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "airConditioning",
+                    "value": true
+                }
+            ],
+            "employee": {
+                "@type": "Person",
+                "name": "Andrea und Jago Leyssens"
+            },
+            "lastUpdated": "2025-11-27T16:55:57+00:00",
+            "offers": {
+                "@type": "Offer",
+                "description": "CHF 235-320"
+            },
+            "name": "Hotel ABC",
+            "description": "Das sehr zentral gelegene 4-Stern-Hotel ABC in Chur ist mit schlichten, aber edlen Materialien und stilvoller Kunst eingerichtet. 48 Zimmer, 1 Suite und 9 Studios, alle modern, hell und mit allem Komfort und gratis WLAN ausgestattet. Ein gediegener Fruehstuecksraum, eine Hotelbar, eine Spa-Lounge (Dampfbad, Sauna, Erlebnisdusche, Ruheraum), ein Fitnessraum, eigene Parkplaetze (direkt am Haus) und Garagen mit E-Auto-Ladestation stehen unseren Gaesten zur Verfuegung.\n\nEin exklusiv eingerichteter Boardroom fuer Sitzungen auf hoechstem Niveau ergaenzt unsere Hotelinfrastruktur.\n\nUnsere edle und moderne Hotelbar ist der Treffpunkt im Hotel - fuer den Aperoe vor dem Business-Lunch, vor dem Nachtessen oder fuer den Â«Schlummer-TrunkÂ».\n\nDie Stadt Chur ist eine Bahn-, Kultur-, Golf- und Shoppingstadt und damit der ideale Ausgangspunkt fuer einen abwechslungsreichen Aufenthalt im Wirtschaftszentrum des groessten Kantons der Schweiz.\n\nWir freuen uns, Sie in unserem modernen Boutique-Hotel ABC Chur herzlich begruessen zu duerfen."
+        },
+        {
+            "@type": "LodgingBusiness",
+            "@id": "https://www.smartstaychur.com/id/hotels/hotel-ruetli",
+            "address": "Welschdoerfli 18",
+            "addressLocality": "7000 Chur",
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 46.8478379,
+                "longitude": 9.5276096
+            },
+            "url": "https://api.whatsapp.com/send/?phone=41774256969&text&type=phone_number&app_absent=0",
+            "telephone": "+41 774256969",
+            "email": "",
+            "priceRange": "CHF 90-140",
+            "amenityFeature": [
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "wifi",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "parking",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "familyRooms",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "balcony",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "airConditioning",
+                    "value": true
+                }
+            ],
+            "employee": {
+                "@type": "Person",
+                "name": "Familie Alder"
+            },
+            "lastUpdated": "2025-11-27T14:54:45+00:00",
+            "offers": {
+                "@type": "Offer",
+                "description": "CHF 90-140"
+            },
+            "name": "Hotel Ruetli",
+            "description": "Die Unterkunft Haus zum RÃ¼tli, die in der Altstadt von Chur  gelegen ist, verfÃ¼gt Ã¼ber ÃœbernachtungsmÃ¶glichkeiten mit zum Teil  Balkon oder einer Veranda / Patio, einem Flachbild-TV, kostenlosem WLAN. Das Hotel befindet sich im lebhaften WelschdÃ¶rfli.\n\nEinige UnterkÃ¼nfte umfassen eine Terrasse mit Bergblick, eine voll ausgestattete KÃ¼che sowie ein eigenes Badezimmer mit einer Dusche.\n\nWenn Sie die Gegend erkunden mÃ¶chten, finden Sie in der Umgebung MÃ¶glichkeiten zum Skifahren und Fahrradfahren.\n\nSalginatobelbrÃ¼cke liegt 32 km von der Unterkunft Haus zum RÃ¼tli entfernt, wÃ¤hrend Caumasee 23 km entfernt ist."
+        },
+        {
+            "@type": "LodgingBusiness",
+            "@id": "https://www.smartstaychur.com/id/hotels/hotel-stern",
+            "address": "Reichsgasse 11",
+            "addressLocality": "7000 Chur",
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 46.8510288,
+                "longitude": 9.5341672
+            },
+            "url": "https://www.stern-chur.ch",
+            "telephone": "+41 81 258 57 57",
+            "email": "info@stern-chur.ch",
+            "priceRange": "CHF 240-350",
+            "amenityFeature": [
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "wifi",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "parking",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "breakfastIncluded",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "petsAllowed",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "familyRooms",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "airConditioning",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "restaurantOnSite",
+                    "value": true
+                }
+            ],
+            "employee": {
+                "@type": "Person",
+                "name": "Toni Curdin Foppa"
+            },
+            "lastUpdated": "2025-12-05T16:12:32+00:00",
+            "offers": {
+                "@type": "Offer",
+                "description": "CHF 240-350"
+            },
+            "name": "Hotel Stern",
+            "description": "Das Hotel Stern Chur ist ein 300 jÃ¤hriges Hotel mit gelebter Tradition und liegt direkt im Zentrum der Kantonshauptstadt. Ein weites Angebot an BÃ¼ndner KÃ¼che und BÃ¼ndner Weinen vervollstÃ¤ndigen das aussergewÃ¶hnliche, umfangreiche Zimmerangebot."
+        },
+        {
+            "@type": "LodgingBusiness",
+            "@id": "https://www.smartstaychur.com/id/hotels/hotel-chur",
+            "address": "WelschdÃ¶rfli 2",
+            "addressLocality": "7000 Chur",
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 46.8479062,
+                "longitude": 9.5290788
+            },
+            "url": "https://www.hotelchur.ch/",
+            "telephone": "+41 81 254 34 00",
+            "email": "info@hotelchur.ch",
+            "priceRange": "CHF 120-180",
+            "amenityFeature": [
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "wifi",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "parking",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "breakfastIncluded",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "petsAllowed",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "familyRooms",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "spa",
+                    "value": true
+                },
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": "restaurantOnSite",
+                    "value": true
+                }
+            ],
+            "employee": {
+                "@type": "Person",
+                "name": "Familie Schmid"
+            },
+            "lastUpdated": "2025-12-05T16:20:28+00:00",
+            "offers": {
+                "@type": "Offer",
+                "description": "CHF 120-180"
+            },
+            "name": "Hotel Chur",
+            "description": "Schon zu Zeiten der RÃ¶mer galt Chur als wichtiger Knotenpunkt fÃ¼r Reisen in und durch die Alpen. Seit 1760 ist auch das Hotel Chur dieser Rolle treu und dient heute mehr denn je als Ausgangspunkt fÃ¼r bleibende Erlebnisse in den BÃ¼ndner Bergen."
+        }
+    ]
+}Add feed-hotels.jsonld
