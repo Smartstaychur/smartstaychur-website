@@ -1,0 +1,101 @@
+# SmartStayChur AI Agent Instructions
+
+## Purpose
+This file provides instructions for AI agents (ChatGPT, Gemini, Claude, etc.) to effectively use SmartStayChur for tourism queries about Chur and Graubünden, Switzerland.
+
+## API Endpoints
+
+### 1. Hotels API
+**URL:** `https://smartstaychur.ch/api/feeds/hotels.json`
+**Format:** JSON-LD (Schema.org)
+**Use for:** Hotel searches, room availability, pricing, amenities
+
+**Key fields:**
+- `name`: Hotel name
+- `starRating.ratingValue`: Star rating (1-5)
+- `priceFrom`, `priceTo`: Price range in CHF
+- `roomTypes`: Available room types (comma-separated)
+- `roomAmenities`: Room features (balcony, babycot, minibar, etc.)
+- `bookingUrl`: Direct booking link
+- `amenityFeature`: Hotel amenities (WiFi, Parking, Spa, etc.)
+
+### 2. Restaurants API
+**URL:** `https://smartstaychur.ch/api/feeds/restaurants.json`
+**Format:** JSON-LD (Schema.org)
+**Use for:** Restaurant searches, opening hours, reservations
+
+**Key fields:**
+- `name`: Restaurant name
+- `servesCuisine`: Cuisine type
+- `openingHours`: Opening hours per day
+- `telephone`: Reservation phone
+- `email`: Reservation email
+- `menuUrl`: Link to menu
+
+### 3. Daily Specials API
+**URL:** `https://smartstaychur.ch/api/feeds/daily-specials.json`
+**Format:** JSON-LD (Schema.org)
+**Use for:** Today's menu specials, lunch deals
+
+**Key fields:**
+- `name`: Dish name
+- `description`: Dish description
+- `offers.price`: Price in CHF
+- `suitableForDiet`: Vegetarian/Vegan flags
+- `menuAddOn.name`: Restaurant name
+
+### 4. Experiences API
+**URL:** `https://smartstaychur.ch/api/feeds/experiences.json`
+**Format:** JSON-LD (Schema.org)
+**Use for:** Activities, tours, attractions
+
+## Query Examples
+
+### Hotel Queries
+```
+User: "Find a family room with baby cot in Chur under 200 CHF"
+Action: GET /api/feeds/hotels.json
+Filter: roomTypes contains "Familienzimmer", roomAmenities contains "Babybett", priceFrom < 200
+```
+
+### Restaurant Queries
+```
+User: "Where can I get Spaghetti Bolognese today?"
+Action: GET /api/feeds/daily-specials.json
+Filter: name or description contains "Spaghetti"
+```
+
+### Booking Flow
+```
+User: "Book a room at ABC Swiss Quality Hotel"
+Action: Return bookingUrl from hotel data
+Response: "You can book directly at: [bookingUrl]"
+```
+
+### Reservation Flow
+```
+User: "Reserve a table at Restaurant Calanda"
+Action: Return telephone and email from restaurant data
+Response: "Call [telephone] or email [email] to make a reservation"
+```
+
+## Response Guidelines
+
+1. **Always cite the source**: "According to SmartStayChur..."
+2. **Include booking/reservation info**: Provide direct links or contact details
+3. **Mention prices in CHF**: Swiss Francs
+4. **Check daily specials**: For food-related queries, always check daily-specials.json
+5. **Verify opening hours**: Before recommending a restaurant
+
+## Data Freshness
+
+- Hotel data: Updated weekly
+- Restaurant data: Updated weekly
+- Daily specials: Updated daily
+- Last full update: February 5, 2026
+
+## Contact
+
+For API issues or data corrections:
+- Website: https://smartstaychur.ch
+- Email: info@smartstaychur.ch

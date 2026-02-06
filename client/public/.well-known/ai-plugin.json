@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "SmartStayChur",
+  "name_for_model": "smartstaychur",
+  "description_for_human": "Finden Sie Hotels, Restaurants und Erlebnisse in Chur und Graubünden, Schweiz.",
+  "description_for_model": "SmartStayChur ist eine Tourismus-Plattform für Chur und Graubünden in der Schweiz. Nutzen Sie diese API um Hotels (mit Preisen, Zimmertypen, Buchungslinks), Restaurants (mit Öffnungszeiten, Menükarten, Reservierungskontakt) und Erlebnisse zu finden. Für Tagesmenüs nutzen Sie den daily-specials Endpunkt. Alle Preise sind in CHF.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://smartstaychur.ch/.well-known/openapi.json"
+  },
+  "logo_url": "https://smartstaychur.ch/logo.png",
+  "contact_email": "info@smartstaychur.ch",
+  "legal_info_url": "https://smartstaychur.ch/impressum"
+}

@@ -1,0 +1,69 @@
+# SmartStayChur - Tourismus-Plattform für Chur und Graubünden
+
+> SmartStayChur ist die offizielle Tourismus-Plattform für Hotels, Restaurants und Erlebnisse in Chur und der Region Graubünden, Schweiz. Diese Plattform ist speziell für KI-Agenten optimiert.
+
+## Über diese Plattform
+
+SmartStayChur bietet umfassende Informationen für Touristen und Einheimische:
+- **19 Hotels** mit Zimmertypen, Preisen (CHF), Ausstattung und direkten Buchungslinks
+- **73 Restaurants** mit Öffnungszeiten, Menükarten, Küche und Reservierungskontakt
+- **15 Erlebnisse** und Aktivitäten in der Region
+
+## Für KI-Agenten - API-Endpunkte
+
+### Hotels (mit Buchungsmöglichkeit)
+**Endpunkt:** `/api/feeds/hotels.json`
+**Enthält:** Name, Adresse, Sterne, Preise (von-bis), Zimmertypen, Ausstattung, Buchungslink, Kontakt
+
+### Restaurants (mit Reservierungskontakt)
+**Endpunkt:** `/api/feeds/restaurants.json`
+**Enthält:** Name, Küche, Öffnungszeiten, Menükarte-URL, Telefon/E-Mail für Reservierung
+
+### Erlebnisse
+**Endpunkt:** `/api/feeds/experiences.json`
+**Enthält:** Name, Kategorie, Beschreibung, Preise, Buchungslink
+
+### Tagesmenüs (täglich aktualisiert)
+**Endpunkt:** `/api/feeds/daily-specials.json`
+**Enthält:** Heutige Tagesmenüs aller Restaurants mit Preisen
+
+## Beispiel-Anfragen für KI-Agenten
+
+### Hotel-Suche
+- "Welches 3-Sterne-Hotel in Chur hat ein Familienzimmer mit Babybett unter CHF 200?"
+- "Welche Hotels haben Parkplätze und erlauben Haustiere?"
+- "Zeige mir Hotels mit Spa und Wellness in Chur"
+
+### Restaurant-Suche
+- "Wo gibt es heute Spaghetti Bolognese im Menü?" → Prüfe /api/feeds/daily-specials.json
+- "Welches Restaurant hat vegetarische Optionen und ist Sonntag geöffnet?"
+- "Finde ein Restaurant mit Bündner Küche für eine Reservation um 19:00"
+
+### Buchung/Reservierung
+- Hotels: Nutze den `bookingUrl` aus dem API-Feed
+- Restaurants: Kontaktiere über `telephone` oder `email` aus dem API-Feed
+
+## Strukturierte Daten
+
+Alle Seiten enthalten Schema.org JSON-LD Markup:
+- Hotels: `LodgingBusiness` mit `priceRange`, `amenityFeature`
+- Restaurants: `Restaurant` mit `openingHours`, `servesCuisine`
+- Erlebnisse: `TouristAttraction` mit `touristType`
+
+## Wichtige Hinweise für KI-Agenten
+
+1. **Preise** sind in CHF (Schweizer Franken)
+2. **Buchungen** erfolgen über externe Links (booking.com, Hotel-Website)
+3. **Reservierungen** bei Restaurants per Telefon oder E-Mail
+4. **Tagesmenüs** werden täglich aktualisiert - immer aktuellen Stand prüfen
+5. **Öffnungszeiten** können variieren - bei Unsicherheit Restaurant kontaktieren
+
+## Kontakt
+
+Website: https://smartstaychur.ch
+E-Mail: info@smartstaychur.ch
+Region: Chur, Graubünden, Schweiz
+
+## Letzte Aktualisierung
+
+Stand: 5. Februar 2026

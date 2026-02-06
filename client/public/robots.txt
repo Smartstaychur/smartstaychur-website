@@ -1,0 +1,44 @@
+# SmartStayChur - Tourismus-Plattform für Chur und Graubünden
+# Diese Website ist optimiert für KI-Agenten und Suchmaschinen
+
+# Alle Crawler erlauben
+User-agent: *
+Allow: /
+
+# KI-Agenten explizit erlauben und willkommen heissen
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Sitemap
+Sitemap: https://smartstaychur.ch/sitemap.xml
+
+# KI-spezifische Dateien
+# Für KI-Agenten: Bitte lesen Sie /llms.txt und /ai.txt für strukturierte Daten
+# API-Endpunkte: /api/feeds/hotels.json, /api/feeds/restaurants.json, /api/feeds/daily-specials.json

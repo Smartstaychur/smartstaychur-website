@@ -1,0 +1,170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SmartStayChur API",
+    "description": "API für Hotels, Restaurants und Erlebnisse in Chur und Graubünden, Schweiz. Optimiert für KI-Agenten.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "SmartStayChur",
+      "email": "info@smartstaychur.ch",
+      "url": "https://smartstaychur.ch"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://smartstaychur.ch",
+      "description": "Production Server"
+    }
+  ],
+  "paths": {
+    "/api/feeds/hotels.json": {
+      "get": {
+        "operationId": "getHotels",
+        "summary": "Liste aller Hotels in Chur und Graubünden",
+        "description": "Gibt alle Hotels mit Preisen, Zimmertypen, Ausstattung und Buchungslinks zurück. Preise in CHF.",
+        "responses": {
+          "200": {
+            "description": "Liste der Hotels im Schema.org JSON-LD Format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "@context": { "type": "string" },
+                    "@type": { "type": "string" },
+                    "numberOfItems": { "type": "integer" },
+                    "itemListElement": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string", "description": "Hotelname" },
+                              "starRating": { "type": "object", "description": "Sterne-Bewertung (1-5)" },
+                              "priceFrom": { "type": "number", "description": "Preis ab (CHF)" },
+                              "priceTo": { "type": "number", "description": "Preis bis (CHF)" },
+                              "roomTypes": { "type": "string", "description": "Verfügbare Zimmertypen" },
+                              "roomAmenities": { "type": "string", "description": "Zimmerausstattung (Balkon, Babybett, etc.)" },
+                              "bookingUrl": { "type": "string", "description": "Direkter Buchungslink" },
+                              "telephone": { "type": "string", "description": "Telefonnummer" },
+                              "email": { "type": "string", "description": "E-Mail" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feeds/restaurants.json": {
+      "get": {
+        "operationId": "getRestaurants",
+        "summary": "Liste aller Restaurants in Chur",
+        "description": "Gibt alle Restaurants mit Öffnungszeiten, Küche, Menükarten-Link und Reservierungskontakt zurück.",
+        "responses": {
+          "200": {
+            "description": "Liste der Restaurants im Schema.org JSON-LD Format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "numberOfItems": { "type": "integer" },
+                    "itemListElement": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string", "description": "Restaurantname" },
+                              "servesCuisine": { "type": "string", "description": "Küche (z.B. Bündner, Italienisch)" },
+                              "openingHours": { "type": "object", "description": "Öffnungszeiten pro Wochentag" },
+                              "menuUrl": { "type": "string", "description": "Link zur Speisekarte" },
+                              "telephone": { "type": "string", "description": "Telefon für Reservierung" },
+                              "email": { "type": "string", "description": "E-Mail für Reservierung" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feeds/daily-specials.json": {
+      "get": {
+        "operationId": "getDailySpecials",
+        "summary": "Heutige Tagesmenüs aller Restaurants",
+        "description": "Gibt die aktuellen Tagesmenüs/Daily Specials aller Restaurants zurück. Nutzen Sie diesen Endpunkt für Fragen wie 'Wo gibt es heute Schnitzel?'",
+        "responses": {
+          "200": {
+            "description": "Liste der heutigen Tagesmenüs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "datePublished": { "type": "string", "description": "Heutiges Datum" },
+                    "numberOfItems": { "type": "integer" },
+                    "itemListElement": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string", "description": "Gerichtname" },
+                              "description": { "type": "string", "description": "Beschreibung" },
+                              "offers": {
+                                "type": "object",
+                                "properties": {
+                                  "price": { "type": "number", "description": "Preis in CHF" }
+                                }
+                              },
+                              "menuAddOn": {
+                                "type": "object",
+                                "properties": {
+                                  "name": { "type": "string", "description": "Restaurant" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feeds/experiences.json": {
+      "get": {
+        "operationId": "getExperiences",
+        "summary": "Liste aller Erlebnisse und Aktivitäten",
+        "description": "Gibt alle Erlebnisse, Touren und Aktivitäten in Chur und Graubünden zurück.",
+        "responses": {
+          "200": {
+            "description": "Liste der Erlebnisse im Schema.org JSON-LD Format"
+          }
+        }
+      }
+    }
+  }
+}
