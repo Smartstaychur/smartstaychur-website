@@ -3,6 +3,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerPasswordAuthRoutes } from "../passwordAuth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -36,6 +37,9 @@ async function startServer() {
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Password-based authentication routes
+  registerPasswordAuthRoutes(app);
   
   // API Feeds for KI-Agenten (JSON endpoints)
   app.get("/api/feeds/hotels.json", async (req, res) => {

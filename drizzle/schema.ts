@@ -6,6 +6,8 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json, de
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
+  username: varchar("username", { length: 128 }).unique(),
+  passwordHash: varchar("passwordHash", { length: 256 }),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),

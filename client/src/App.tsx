@@ -12,6 +12,10 @@ import RestaurantDetail from "./pages/RestaurantDetail";
 import Erlebnisse from "./pages/Erlebnisse";
 import Admin from "./pages/Admin";
 import AdminDailySpecials from "./pages/AdminDailySpecials";
+import AdminProviders from "./pages/AdminProviders";
+import AdminChangePassword from "./pages/AdminChangePassword";
+import AdminHotels from "./pages/AdminHotels";
+import AdminRestaurants from "./pages/AdminRestaurants";
 
 function Router() {
   return (
@@ -24,6 +28,10 @@ function Router() {
       <Route path="/erlebnisse" component={Erlebnisse} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/daily-specials" component={AdminDailySpecials} />
+      <Route path="/admin/providers" component={AdminProviders} />
+      <Route path="/admin/change-password" component={AdminChangePassword} />
+      <Route path="/admin/hotels" component={AdminHotels} />
+      <Route path="/admin/restaurants" component={AdminRestaurants} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

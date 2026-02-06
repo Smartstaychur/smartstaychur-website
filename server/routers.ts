@@ -204,6 +204,10 @@ export const appRouter = router({
           shortDescription: z.string().optional(),
           description: z.string().optional(),
           phone: z.string().optional(),
+          email: z.string().optional(),
+          website: z.string().optional(),
+          menuUrl: z.string().optional(),
+          reservationUrl: z.string().optional(),
           openingHours: z.any().optional(),
         }),
       }))
