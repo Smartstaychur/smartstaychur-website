@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { HOTEL_AMENITIES } from "../../../shared/types";
 
 const ICON_MAP: Record<string, any> = {
@@ -56,8 +57,52 @@ export default function HotelDetail() {
 
   const activeAmenities = HOTEL_AMENITIES.filter((a) => (hotel as any)[a.key]);
 
+  // JSON-LD structured data for AI agents and search engines
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Hotel",
+    "name": hotel.name,
+    "description": hotel.descriptionDe || hotel.shortDescDe,
+    "image": hotel.mainImage ? [hotel.mainImage, ...(hotel.galleryImages || [])] : [],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": hotel.address,
+      "addressLocality": hotel.city,
+      "postalCode": hotel.postalCode,
+      "addressCountry": "CH"
+    },
+    "telephone": hotel.phone,
+    "email": hotel.email,
+    "url": hotel.website,
+    "starRating": hotel.stars ? {
+      "@type": "Rating",
+      "ratingValue": hotel.stars,
+      "bestRating": 5
+    } : undefined,
+    "priceRange": (hotel.priceFrom && hotel.priceTo) 
+      ? `CHF ${hotel.priceFrom}-${hotel.priceTo}`
+      : hotel.priceFrom 
+        ? `ab CHF ${hotel.priceFrom}`
+        : undefined,
+    "amenityFeature": activeAmenities.map(a => ({
+      "@type": "LocationFeatureSpecification",
+      "name": a.label,
+      "value": true
+    })),
+    "checkinTime": hotel.checkInFrom,
+    "checkoutTime": hotel.checkOutFrom,
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <SEO
+        title={hotel.name}
+        description={hotel.shortDescDe || hotel.descriptionDe || `${hotel.name} in Chur`}
+        url={`https://smartstaychur.ch/hotels/${hotel.slug}`}
+        image={hotel.mainImage || undefined}
+        type="article"
+        jsonLd={jsonLd}
+      />
       <Navbar />
 
       <div className="container py-8">

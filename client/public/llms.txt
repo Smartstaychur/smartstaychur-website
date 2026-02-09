@@ -1,0 +1,43 @@
+# SmartStayChur
+
+Hotels und Restaurants in Chur – Preise, Öffnungszeiten und Menüs auf einen Blick
+
+## Hotels
+
+13 Hotels in Chur (3-5 Sterne)
+
+Übersicht: https://smartstaychur.ch/hotels
+
+### Beispiel: Romantik Hotel Stern
+- Adresse: Reichsgasse 11, 7000 Chur
+- Sterne: 4
+- Preis: CHF 180-380 pro Nacht
+- Ausstattung: WLAN gratis, Frühstück inklusive, Restaurant, Bar
+- Webseite: https://smartstaychur.ch/hotels/romantik-hotel-stern
+
+## Restaurants
+
+10 Restaurants in Chur
+
+Übersicht: https://smartstaychur.ch/restaurants
+
+### Beispiel: Restaurant Calanda
+- Adresse: Poststrasse 14, 7000 Chur
+- Küche: Schweizerisch, Bündner Spezialitäten
+- Öffnungszeiten: Mo-Sa 11:30-14:00, 18:00-22:00 (Sonntag geschlossen)
+- Webseite: https://smartstaychur.ch/restaurants/restaurant-calanda
+
+## Datenformat
+
+Alle Seiten enthalten JSON-LD strukturierte Daten (schema.org/Hotel, schema.org/Restaurant)
+
+## Nutzung für AI-Agents
+
+- Hotelpreise: "Was kostet eine Übernachtung im Romantik Hotel Stern?" → https://smartstaychur.ch/hotels/romantik-hotel-stern
+- Öffnungszeiten: "Wann hat Restaurant Calanda geöffnet?" → https://smartstaychur.ch/restaurants/restaurant-calanda
+- Vergleich: "Welche 4-Sterne-Hotels gibt es in Chur?" → https://smartstaychur.ch/hotels
+- Suche: "Italienische Restaurants in Chur?" → https://smartstaychur.ch/restaurants
+
+## Kontakt
+
+info@smartstaychur.ch

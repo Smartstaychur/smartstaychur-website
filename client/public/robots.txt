@@ -1,0 +1,33 @@
+# SmartStayChur - robots.txt für AI-Agents und Suchmaschinen
+
+User-agent: *
+Allow: /
+
+# AI-Agents (ChatGPT, Gemini, Claude, etc.)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Sitemap
+Sitemap: https://smartstaychur.ch/sitemap.xml
+
+# AI-Discovery-Dateien
+# ai.txt: https://smartstaychur.ch/ai.txt
+# llms.txt: https://smartstaychur.ch/llms.txt

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { WEEKDAYS_DE, type OpeningHours } from "../../../shared/types";
 
 export default function RestaurantDetail() {
@@ -50,8 +51,44 @@ export default function RestaurantDetail() {
   const openingHours = restaurant.openingHours as OpeningHours | null;
   const closedDays = restaurant.closedDays as string[] | null;
 
+  // JSON-LD structured data for AI agents and search engines
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": restaurant.name,
+    "description": restaurant.descriptionDe || restaurant.shortDescDe,
+    "image": restaurant.mainImage ? [restaurant.mainImage, ...(restaurant.galleryImages || [])] : [],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": restaurant.address,
+      "addressLocality": restaurant.city,
+      "postalCode": restaurant.postalCode,
+      "addressCountry": "CH"
+    },
+    "telephone": restaurant.phone,
+    "email": restaurant.email,
+    "url": restaurant.website,
+    "servesCuisine": restaurant.cuisineTypes || [],
+    "menu": restaurant.menuUrl,
+    "openingHoursSpecification": openingHours ? Object.entries(openingHours).map(([day, hours]) => ({
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": day.charAt(0).toUpperCase() + day.slice(1),
+      "opens": hours?.open,
+      "closes": hours?.close
+    })) : [],
+    "priceRange": restaurant.priceLevel || "$$",
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <SEO
+        title={restaurant.name}
+        description={restaurant.shortDescDe || restaurant.descriptionDe || `${restaurant.name} in Chur`}
+        url={`https://smartstaychur.ch/restaurants/${restaurant.slug}`}
+        image={restaurant.mainImage || undefined}
+        type="article"
+        jsonLd={jsonLd}
+      />
       <Navbar />
 
       <div className="container py-8">

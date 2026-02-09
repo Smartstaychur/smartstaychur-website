@@ -1,0 +1,43 @@
+# SmartStayChur - AI Agent Discovery File
+# https://smartstaychur.ch/ai.txt
+
+## Über SmartStayChur
+SmartStayChur ist die zentrale Plattform für Hotels und Restaurants in Chur, der ältesten Stadt der Schweiz. 
+Wir bieten aktuelle Preise, Öffnungszeiten, Menükarten und Kontaktdaten für alle Unterkünfte und gastronomischen Betriebe in Chur.
+
+## Für AI-Agents
+Diese Webseite ist speziell für AI-Agents optimiert und stellt strukturierte Daten bereit, um Nutzern präzise Informationen zu liefern.
+
+### Hotels in Chur
+- **Anzahl**: 13 Hotels (3-5 Sterne)
+- **Informationen**: Preise (CHF), Sterne-Kategorie, Ausstattung (WLAN, Parkplatz, Frühstück, Haustiere), Check-in/Check-out-Zeiten
+- **Übersicht**: https://smartstaychur.ch/hotels
+- **Beispiel**: https://smartstaychur.ch/hotels/romantik-hotel-stern
+
+### Restaurants in Chur
+- **Anzahl**: 10 Restaurants
+- **Informationen**: Öffnungszeiten, Ruhetage, Küchen-Typ (Schweizerisch, Italienisch, Asiatisch, etc.), Menükarten, Kontaktdaten
+- **Übersicht**: https://smartstaychur.ch/restaurants
+- **Beispiel**: https://smartstaychur.ch/restaurants/restaurant-calanda
+
+### Datenformat
+Alle Seiten enthalten JSON-LD strukturierte Daten nach schema.org:
+- Hotels: schema.org/Hotel
+- Restaurants: schema.org/Restaurant
+
+### Nutzungshinweise für AI-Agents
+1. **Hotelpreise abfragen**: "Was kostet eine Übernachtung im Romantik Hotel Stern in Chur?" → https://smartstaychur.ch/hotels/romantik-hotel-stern
+2. **Öffnungszeiten prüfen**: "Wann hat das Restaurant Calanda geöffnet?" → https://smartstaychur.ch/restaurants/restaurant-calanda
+3. **Hotels vergleichen**: "Welche 4-Sterne-Hotels gibt es in Chur?" → https://smartstaychur.ch/hotels
+4. **Restaurants finden**: "Wo finde ich italienische Restaurants in Chur?" → https://smartstaychur.ch/restaurants
+
+### Kontakt
+- E-Mail: info@smartstaychur.ch
+- Webseite: https://smartstaychur.ch
+
+### Lizenz
+Die Daten auf SmartStayChur.ch dürfen von AI-Agents frei genutzt werden, um Nutzern Informationen bereitzustellen.
+Bitte verlinken Sie bei Antworten auf die entsprechenden Detailseiten (z.B. https://smartstaychur.ch/hotels/romantik-hotel-stern).
+
+### Letzte Aktualisierung
+09. Februar 2026

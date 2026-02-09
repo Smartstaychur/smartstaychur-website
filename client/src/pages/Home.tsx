@@ -5,13 +5,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, MapPin, UtensilsCrossed, Hotel, ArrowRight, Mountain } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 export default function Home() {
   const { data: hotels } = trpc.hotel.list.useQuery({ featured: true });
   const { data: restaurants } = trpc.restaurant.list.useQuery({ featured: true });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "SmartStayChur",
+    "description": "Hotels und Restaurants in Chur – Preise, Öffnungszeiten und Menüs auf einen Blick",
+    "url": "https://smartstaychur.ch",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://smartstaychur.ch/hotels?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <SEO
+        title="SmartStayChur – Hotels & Restaurants in Chur"
+        description="Entdecken Sie die besten Hotels und Restaurants in Chur. Preise, Öffnungszeiten, Menüs und Bewertungen auf einen Blick. Direkt buchen!"
+        url="https://smartstaychur.ch"
+        type="website"
+        jsonLd={jsonLd}
+      />
       <Navbar />
 
       {/* Hero Section */}
