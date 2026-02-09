@@ -100,15 +100,17 @@ export default function HotelDetail() {
             ) : (
               <p className="text-muted-foreground">Preis auf Anfrage</p>
             )}
-            <a
-              href={`https://www.expediataap.ch/Hotel-Search?destination=${encodeURIComponent(hotel.city || 'Chur')}&hotelName=${encodeURIComponent(hotel.name)}&wdCode=CH10115`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="mt-2 gap-1">
-                Jetzt buchen <ExternalLink className="h-4 w-4" />
-              </Button>
-            </a>
+            {hotel.website && (
+              <a
+                href={hotel.website}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button className="mt-2 gap-1">
+                  Zur Hotel-Webseite <ExternalLink className="h-4 w-4" />
+                </Button>
+              </a>
+            )}
           </div>
         </div>
 
