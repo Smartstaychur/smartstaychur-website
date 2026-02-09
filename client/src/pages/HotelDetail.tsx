@@ -100,13 +100,15 @@ export default function HotelDetail() {
             ) : (
               <p className="text-muted-foreground">Preis auf Anfrage</p>
             )}
-            {hotel.bookingUrl && (
-              <a href={hotel.bookingUrl} target="_blank" rel="noopener noreferrer">
-                <Button className="mt-2 gap-1">
-                  Jetzt buchen <ExternalLink className="h-4 w-4" />
-                </Button>
-              </a>
-            )}
+            <a
+              href={`https://www.expediataap.ch/Hotel-Search?destination=${encodeURIComponent(hotel.city || 'Chur')}&hotelName=${encodeURIComponent(hotel.name)}&wdCode=CH10115`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="mt-2 gap-1">
+                Jetzt buchen <ExternalLink className="h-4 w-4" />
+              </Button>
+            </a>
           </div>
         </div>
 
@@ -114,6 +116,17 @@ export default function HotelDetail() {
         {hotel.mainImage && (
           <div className="rounded-xl overflow-hidden mb-8">
             <img src={hotel.mainImage} alt={hotel.name} className="w-full h-64 md:h-96 object-cover" />
+          </div>
+        )}
+
+        {/* Gallery */}
+        {hotel.galleryImages && hotel.galleryImages.length > 1 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            {hotel.galleryImages.slice(1, 7).map((img, i) => (
+              <div key={i} className="rounded-lg overflow-hidden aspect-video">
+                <img src={img} alt={`${hotel.name} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
+            ))}
           </div>
         )}
 

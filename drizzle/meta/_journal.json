@@ -5,15 +5,15 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1770322502056,
-      "tag": "0000_open_nightmare",
+      "when": 1770395567490,
+      "tag": "0000_bent_the_hand",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1770322589790,
-      "tag": "0001_overconfident_meltdown",
+      "when": 1770395710873,
+      "tag": "0001_ordinary_loa",
       "breakpoints": true
     }
   ]
